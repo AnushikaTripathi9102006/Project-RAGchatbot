@@ -79,16 +79,16 @@ def load_vectorstore(file_bytes, api_key):
     
     )
 
-    try:
+try:
     vectorstore = Chroma.from_documents(
         documents=splits,
         embedding=embeddings
     )
-    except Exception as e:
-        st.error(f"Error creating vector store:\n\n{e}")
-        st.stop()
+except Exception as e:
+    st.error(f"Error creating vector store:\n\n{e}")
+    st.stop()
     
-    return vectorstore
+return vectorstore
 
 
 # -----------------------------
