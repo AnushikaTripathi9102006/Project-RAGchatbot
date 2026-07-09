@@ -19,64 +19,201 @@ st.set_page_config(
 
 # Custom Styling for a sleek, hardware-dashboard look
 st.markdown("""
-    <style>
-        /* General background and typography adjustments */
-        .stApp {
-            background-color: #f8f9fa;
-        }
-        h1, h2, h3 {
-            color: #1428a0 !important; /* Samsung Blue */
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            font-weight: 600;
-        }
-        
-        /* Dashboard Card Container */
-        .dashboard-card {
-            background-color: #ffffff;
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-            border: 1px solid #e9ecef;
-        }
-        
-        /* Status Badges */
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            background-color: #e3faf2;
-            color: #0ca678;
-            margin-bottom: 10px;
-        }
-        
-        /* Voice Engine Indicator */
-        .voice-ready {
-            font-size: 0.85rem;
-            color: #495057;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 10px;
-        }
-        .voice-dot {
-            height: 8px;
-            width: 8px;
-            background-color: #3b5bdb;
-            border-radius: 50%;
-            display: inline-block;
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(0.9); opacity: 0.6; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.9); opacity: 0.6; }
-        }
-    </style>
-""", unsafe_allow_html=True)
+<style>
+
+/* Import Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+html,body,[class*="css"]{
+font-family:'Poppins',sans-serif;
+}
+
+/* Background */
+.stApp{
+background:linear-gradient(180deg,#eef4ff,#f8fbff,#ffffff);
+}
+
+/* Hide Streamlit */
+#MainMenu{
+visibility:hidden;
+}
+footer{
+visibility:hidden;
+}
+header{
+visibility:hidden;
+}
+
+/* Hero Banner */
+
+.hero{
+
+background:linear-gradient(135deg,#1428A0,#246BFD);
+
+padding:40px;
+
+border-radius:25px;
+
+text-align:center;
+
+color:white;
+
+box-shadow:0 12px 35px rgba(0,0,0,.18);
+
+margin-bottom:25px;
+
+}
+
+.hero h1{
+
+color:white!important;
+
+font-size:46px;
+
+margin-bottom:10px;
+
+}
+
+.hero p{
+
+font-size:18px;
+
+opacity:.9;
+
+}
+
+/* Glass Card */
+
+.card{
+
+background:rgba(255,255,255,.72);
+
+backdrop-filter:blur(18px);
+
+padding:30px;
+
+border-radius:22px;
+
+box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+border:1px solid rgba(255,255,255,.6);
+
+}
+
+/* Metric Cards */
+
+.metric{
+
+background:white;
+
+padding:20px;
+
+border-radius:18px;
+
+text-align:center;
+
+box-shadow:0 5px 18px rgba(0,0,0,.05);
+
+transition:.3s;
+
+}
+
+.metric:hover{
+
+transform:translateY(-4px);
+
+}
+
+/* Status */
+
+.online{
+
+display:inline-block;
+
+padding:8px 18px;
+
+border-radius:30px;
+
+background:#dbffe7;
+
+color:#16a34a;
+
+font-weight:600;
+
+}
+
+/* Chat Bubble */
+
+.response{
+
+background:white;
+
+padding:22px;
+
+border-left:6px solid #1428A0;
+
+border-radius:18px;
+
+box-shadow:0 8px 18px rgba(0,0,0,.08);
+
+font-size:17px;
+
+line-height:1.8;
+
+}
+
+/* Buttons */
+
+.stButton>button{
+
+width:100%;
+
+background:#1428A0;
+
+color:white;
+
+border:none;
+
+padding:12px;
+
+border-radius:12px;
+
+font-weight:600;
+
+transition:.3s;
+
+}
+
+.stButton>button:hover{
+
+background:#246BFD;
+
+transform:scale(1.02);
+
+}
+
+/* Input */
+
+.stTextInput input{
+
+border-radius:15px;
+
+padding:14px;
+
+border:2px solid #d9e5ff;
+
+font-size:17px;
+
+}
+
+.stTextInput input:focus{
+
+border:2px solid #246BFD;
+
+}
+
+</style>
+""",unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # 2. Hardcoded Key & Environment Setup
@@ -125,12 +262,11 @@ def initialize_rag_chain():
 
 # Header Block
 st.markdown("""
-    <div style='text-align: center; margin-bottom: 30px;'>
-        <p style='color: #868e96; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; margin-bottom: 5px;'>SmartHome Diagnostics</p>
-        <h1 style='margin-top: 0;'>SAMSUNG Care AI</h1>
-        <p style='color: #495057;'>Instant interactive guidance for your Smart Washing Machine</p>
-    </div>
-""", unsafe_allow_html=True)
+<div class="hero">
+<h1>🧺 Samsung Smart Care AI</h1>
+<p>Your Intelligent Washing Machine Assistant</p>
+</div>
+""",unsafe_allow_html=True)
 
 # Main UI Panel
 st.markdown("<div class='dashboard-card'>", unsafe_allow_html=True)
