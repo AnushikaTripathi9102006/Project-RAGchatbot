@@ -1,14 +1,16 @@
 import os
+import tempfile
 import streamlit as st
+from bs4 import BeautifulSoup
 
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_community.document_loaders import UnstructuredHTMLLoader
+from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
 # -----------------------------
-# Streamlit Page Config
+# Page Config
 # -----------------------------
 st.set_page_config(
     page_title="Samsung Washing Machine Assistant",
@@ -17,12 +19,12 @@ st.set_page_config(
 )
 
 st.title("🧺 Samsung Washing Machine RAG Chatbot")
-st.write("Ask questions about the Samsung Washing Machine Manual.")
+st.write("Upload the Samsung washing machine HTML manual and ask questions.")
 
 # -----------------------------
 # Sidebar
 # -----------------------------
-st.sidebar.header("Settings")
+st.sidebar.header("Configuration")
 
 api_key = st.sidebar.text_input(
     "OpenAI API Key",
@@ -30,20 +32,33 @@ api_key = st.sidebar.text_input(
 )
 
 uploaded_file = st.sidebar.file_uploader(
-    "Upload Samsung Manual (HTML)",
+    "Upload HTML Manual",
     type=["html", "htm"]
 )
 
+
 # -----------------------------
-# Load Vector Store
+# Build Vector Store
 # -----------------------------
 @st.cache_resource
-def load_vectorstore(file_path, api_key):
+def load_vectorstore(file_bytes, api_key):
 
     os.environ["OPENAI_API_KEY"] = api_key
 
-    loader = UnstructuredHTMLLoader(file_path=file_path)
-    docs = loader.load()
+    # Save uploaded file temporarily
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as tmp:
+        tmp.write(file_bytes)
+        file_path = tmp.name
+
+    # Read HTML
+    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        html = f.read()
+
+    # Extract text
+    soup = BeautifulSoup(html, "html.parser")
+    text = soup.get_text(separator="\n", strip=True)
+
+    docs = [Document(page_content=text)]
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
@@ -64,16 +79,19 @@ def load_vectorstore(file_path, api_key):
     return vectorstore
 
 
+# -----------------------------
+# Main App
+# -----------------------------
 if uploaded_file and api_key:
 
-    temp_path = "manual.html"
+    vectorstore = load_vectorstore(
+        uploaded_file.getvalue(),
+        api_key
+    )
 
-    with open(temp_path, "wb") as f:
-        f.write(uploaded_file.read())
-
-    vectorstore = load_vectorstore(temp_path, api_key)
-
-    retriever = vectorstore.as_retriever(search_kwargs={"k":3})
+    retriever = vectorstore.as_retriever(
+        search_kwargs={"k": 3}
+    )
 
     llm = ChatOpenAI(
         model="gpt-4o-mini",
@@ -82,12 +100,11 @@ if uploaded_file and api_key:
 
     prompt = ChatPromptTemplate.from_template(
         """
-You are an expert Samsung Washing Machine assistant.
+You are a helpful Samsung Washing Machine Assistant.
 
-Answer ONLY from the provided context.
+Answer ONLY using the provided context.
 
-If the answer is not available in the manual,
-reply:
+If the answer is not found in the manual, say:
 
 "I couldn't find that information in the manual."
 
@@ -101,25 +118,22 @@ Answer:
 """
     )
 
-    st.success("✅ Manual Loaded Successfully!")
-
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Display previous chat
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    # Display previous messages
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
-    # Chat Input
-    question = st.chat_input("Ask something about the washing machine...")
+    question = st.chat_input("Ask a question...")
 
     if question:
 
         st.session_state.messages.append(
             {
-                "role":"user",
-                "content":question
+                "role": "user",
+                "content": question
             }
         )
 
@@ -132,12 +146,12 @@ Answer:
             doc.page_content for doc in docs
         )
 
-        formatted_prompt = prompt.format(
+        final_prompt = prompt.format(
             question=question,
             context=context
         )
 
-        response = llm.invoke(formatted_prompt)
+        response = llm.invoke(final_prompt)
 
         answer = response.content
 
@@ -146,8 +160,8 @@ Answer:
 
         st.session_state.messages.append(
             {
-                "role":"assistant",
-                "content":answer
+                "role": "assistant",
+                "content": answer
             }
         )
 
@@ -155,9 +169,4 @@ Answer:
             st.write(context)
 
 else:
-    st.info("Upload the HTML manual and enter your OpenAI API key.")
-st.markdown("""
-    <div style='text-align: center; color: #94a3b8; font-size: 0.75rem; margin-top: 15px;'>
-        Samsung PoC Control Unit • Powered by LangChain & GPT-4o-Mini
-    </div>
-""", unsafe_allow_html=True)
+    st.info("👈 Enter your OpenAI API key and upload the HTML manual.")
