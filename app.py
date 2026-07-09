@@ -68,7 +68,15 @@ def load_vectorstore(file_bytes, api_key):
     splits = splitter.split_documents(docs)
 
     embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-small"
+    model="text-embedding-3-small",
+    api_key=api_key
+    )
+
+    llm = ChatOpenAI(
+        model="gpt-4o-mini",
+        api_key=api_key,
+        temperature=0
+    
     )
 
     vectorstore = Chroma.from_documents(
